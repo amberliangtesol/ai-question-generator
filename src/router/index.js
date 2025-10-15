@@ -12,6 +12,11 @@ const routes = [
     path: '/practice',
     name: 'PracticeMode',
     component: PracticeMode
+  },
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'NotFound',
+    redirect: '/'
   }
 ]
 

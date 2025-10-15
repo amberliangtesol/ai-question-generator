@@ -7,6 +7,16 @@ export default defineConfig(({ mode }) => {
   
   return {
     plugins: [vue()],
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            vendor: ['vue', 'vue-router', 'pinia'],
+            pdf: ['jspdf', 'html2canvas']
+          }
+        }
+      }
+    },
     server: {
       proxy: {
         '/api/openai': {

@@ -102,7 +102,7 @@ const regenerateQuestions = () => {
 <template>
   <div class="generated-questions">
     <div class="questions-header">
-      <h2>📋 生成的題目</h2>
+      <h2><i class="fas fa-clipboard-list"></i> 生成的題目</h2>
       <p>
         {{ questionStore.selectedSubject === 'chinese' ? '國文' : '英文' }} -
         國小{{ questionStore.selectedGrade }}年級 - 共生成
@@ -113,11 +113,12 @@ const regenerateQuestions = () => {
     <div class="questions-container">
       <div class="quick-actions">
         <button @click="toggleAnswers" class="btn btn-secondary">
-          {{ showAnswers ? '👁️‍🗨️ 隱藏解答' : '👁️ 顯示解答' }}
+          <i class="fas" :class="showAnswers ? 'fa-eye-slash' : 'fa-eye'"></i>
+          {{ showAnswers ? ' 隱藏解答' : ' 顯示解答' }}
         </button>
 
         <button @click="startPractice" class="btn btn-success">
-          🎯 開始刷題
+          <i class="fas fa-play"></i> 開始刷題
         </button>
       </div>
 

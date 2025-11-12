@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import QuestionGenerator from '../views/QuestionGenerator.vue'
+import QuestionReview from '../views/QuestionReview.vue'
 import PracticeMode from '../views/PracticeMode.vue'
 
 const routes = [
@@ -7,6 +8,11 @@ const routes = [
     path: '/',
     name: 'QuestionGenerator',
     component: QuestionGenerator
+  },
+  {
+    path: '/review',
+    name: 'QuestionReview',
+    component: QuestionReview
   },
   {
     path: '/practice',

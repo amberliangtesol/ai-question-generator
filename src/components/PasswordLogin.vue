@@ -48,7 +48,7 @@ const togglePasswordVisibility = () => {
   <div class="password-login">
     <div class="login-container">
       <div class="login-header">
-        <h1>💫 AI智多興出題系統</h1>
+        <h1><i class="fas fa-brain"></i> AI智多興出題系統</h1>
         <p>請輸入密碼以訪問系統</p>
       </div>
 
@@ -72,8 +72,8 @@ const togglePasswordVisibility = () => {
               class="password-toggle"
               :disabled="isLoading"
             >
-              <span v-if="showPassword">👁️‍🗨️</span>
-              <span v-else>👁️</span>
+              <i v-if="showPassword" class="fas fa-eye-slash"></i>
+              <i v-else class="fas fa-eye"></i>
             </button>
           </div>
           <div v-if="error" class="error-message">
@@ -86,8 +86,8 @@ const togglePasswordVisibility = () => {
           class="login-btn"
           :disabled="isLoading || !password.trim()"
         >
-          <span v-if="isLoading">🔄 驗證中...</span>
-          <span v-else>🔐 登入系統</span>
+          <span v-if="isLoading"><i class="fas fa-spinner fa-spin"></i> 驗證中...</span>
+          <span v-else><i class="fas fa-lock"></i> 登入系統</span>
         </button>
       </div>
 

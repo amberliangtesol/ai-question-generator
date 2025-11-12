@@ -65,8 +65,6 @@ const getTypeCount = (category, type) => {
 <template>
   <div class="question-type-selector">
     <div class="form-group">
-      <label class="form-label">題型與題數設定</label>
-
       <div v-if="!questionStore.selectedSubject" class="no-subject-hint">
         請先選擇科目
       </div>
@@ -211,10 +209,6 @@ const getTypeCount = (category, type) => {
             </div>
           </div>
         </div>
-      </div>
-
-      <div v-if="questionStore.questionCount > 0" class="total-count">
-        總題數：{{ questionStore.questionCount }} 題
       </div>
     </div>
   </div>

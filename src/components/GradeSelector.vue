@@ -10,7 +10,7 @@ const handleGradeChange = (event) => {
 
 <template>
   <div class="form-group">
-    <label for="grade" class="form-label">選擇年段</label>
+    <label for="grade" class="form-label">教學年段</label>
     <select
       id="grade"
       :value="questionStore.selectedGrade"

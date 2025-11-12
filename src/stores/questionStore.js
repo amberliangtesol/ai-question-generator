@@ -13,6 +13,7 @@ export const useQuestionStore = defineStore('question', () => {
   const extractedText = ref('')
   const isLoading = ref(false)
   const isProcessingFile = ref(false)
+  const isGenerating = ref(false)
 
   // 年段選項
   const gradeOptions = [
@@ -104,6 +105,10 @@ export const useQuestionStore = defineStore('question', () => {
     isProcessingFile.value = processing
   }
 
+  const setGeneratingStatus = (generating) => {
+    isGenerating.value = generating
+  }
+
   const resetForm = () => {
     selectedGrade.value = ''
     selectedSubject.value = ''
@@ -126,6 +131,7 @@ export const useQuestionStore = defineStore('question', () => {
     extractedText,
     isLoading,
     isProcessingFile,
+    isGenerating,
     
     // 選項
     gradeOptions,
@@ -143,6 +149,7 @@ export const useQuestionStore = defineStore('question', () => {
     setCurrentQuestions,
     setLoading,
     setProcessingFile,
+    setGeneratingStatus,
     resetForm
   }
 })

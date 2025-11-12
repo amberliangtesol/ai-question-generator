@@ -1344,3 +1344,6 @@ export class ExamPaperService {
     document.body.removeChild(link)
   }
 }
+
+// 導出實例供其他模組使用
+export const examPaperService = new ExamPaperService()

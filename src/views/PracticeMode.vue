@@ -2,6 +2,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { useQuestionStore } from '../stores/questionStore';
 import { useRouter } from 'vue-router';
+import TopBanner from '../components/TopBanner.vue';
 
 const questionStore = useQuestionStore();
 const router = useRouter();
@@ -13,12 +14,9 @@ const startTime = ref(null);
 const endTime = ref(null);
 
 onMounted(() => {
-  if (questionStore.currentQuestions.length === 0) {
-    // 如果沒有題目，返回出題頁面
-    router.push('/');
-    return;
+  if (questionStore.currentQuestions.length > 0) {
+    startTime.value = new Date();
   }
-  startTime.value = new Date();
 });
 
 const currentQuestion = computed(() => {
@@ -76,15 +74,10 @@ const previousQuestion = () => {
   }
 };
 
-const goToQuestion = (index) => {
-  currentQuestionIndex.value = index;
-  scrollToTop();
-};
-
 const scrollToTop = () => {
   window.scrollTo({
     top: 0,
-    behavior: 'smooth'
+    behavior: 'smooth',
   });
 };
 
@@ -112,10 +105,14 @@ const backToGenerator = () => {
     setTimeout(() => {
       window.scrollTo({
         top: 0,
-        behavior: 'smooth'
+        behavior: 'smooth',
       });
     }, 100);
   });
+};
+
+const navigateToGenerator = () => {
+  router.push('/');
 };
 
 const getElapsedTime = () => {
@@ -131,19 +128,38 @@ const getElapsedTime = () => {
 const isAnswerCorrect = (questionIndex, answer) => {
   return answer === questionStore.currentQuestions[questionIndex].answer;
 };
+
+const jumpToQuestion = (index) => {
+  currentQuestionIndex.value = index;
+  scrollToTop();
+};
 </script>
 
 <template>
   <div class="practice-mode">
     <!-- 固定在頂端的 Banner -->
-    <div class="top-banner">
-      <div class="banner-content">
-        <h1>💫 AI智多興出題系統</h1>
-        <p>練習模式 - 專注答題，提升學習效果</p>
-      </div>
+    <TopBanner subtitle="練習模式" />
+
+    <!-- 無題目狀態 -->
+    <div v-if="totalQuestions === 0" class="empty-state">
+      <div class="empty-icon"><i class="fas fa-file-alt fa-5x"></i></div>
+      <h2>尚無題目</h2>
+      <p>請先到出題設定頁面生成題目</p>
+      <button @click="navigateToGenerator" class="btn btn-primary">
+        前往出題設定
+      </button>
     </div>
+
     <!-- 測驗進行中 -->
-    <div v-if="!showResults" class="practice-container">
+    <div v-else-if="!showResults && currentQuestion" class="practice-container">
+      <!-- form-header -->
+      <div class="form-header">
+        <div class="header-title">
+          <h2><i class="fas fa-edit"></i> 作答頁面</h2>
+          <p>測驗進行中，請專注答題</p>
+        </div>
+      </div>
+
       <!-- 頂部進度條 -->
       <div class="progress-header">
         <div class="progress-info">
@@ -159,26 +175,8 @@ const isAnswerCorrect = (questionIndex, answer) => {
         </div>
       </div>
 
-      <!-- 題目導航 -->
-      <div class="question-nav">
-        <div class="nav-buttons">
-          <button
-            v-for="(question, index) in questionStore.currentQuestions"
-            :key="index"
-            @click="goToQuestion(index)"
-            class="nav-btn"
-            :class="{
-              active: index === currentQuestionIndex,
-              answered: userAnswers[index],
-            }"
-          >
-            {{ index + 1 }}
-          </button>
-        </div>
-      </div>
-
       <!-- 當前題目 -->
-      <div class="question-container">
+      <div class="question-container" v-if="currentQuestion">
         <div class="question-header">
           <span class="question-type">
             {{ currentQuestion.type === 'single' ? '單選題' : '題組題' }}
@@ -190,7 +188,7 @@ const isAnswerCorrect = (questionIndex, answer) => {
             {{ currentQuestion.question }}
           </div>
 
-          <div class="answer-options">
+          <div class="answer-options" v-if="currentQuestion.options">
             <label
               v-for="option in currentQuestion.options"
               :key="option"
@@ -247,6 +245,14 @@ const isAnswerCorrect = (questionIndex, answer) => {
 
     <!-- 測驗結果 -->
     <div v-else class="results-container">
+      <!-- form-header -->
+      <div class="form-header">
+        <div class="header-title">
+          <h2><i class="fas fa-trophy"></i> 測驗結果</h2>
+          <p>查看您的答題表現</p>
+        </div>
+      </div>
+
       <div class="results-header">
         <h2>測驗完成！</h2>
         <div class="score-display">
@@ -343,43 +349,65 @@ const isAnswerCorrect = (questionIndex, answer) => {
 
 <style scoped>
 .practice-mode {
-  max-width: 900px;
-  min-width: 900px;
-  margin: 0 auto;
-  padding-top: 120px;
-}
-
-/* Banner styles */
-.top-banner {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
   width: 100%;
-  background: #2c3e50;
-  color: white;
-  z-index: 1000;
-  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.15);
+  padding: 2rem;
+  margin-top: 80px;
 }
 
-.banner-content {
-  max-width: 1600px;
-  margin: 0 auto;
-  padding: 1rem 2rem;
-  text-align: center;
+/* Banner 由 TopBanner 組件提供 */
+
+/* form-header 樣式 */
+.form-header {
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid #e9ecef;
 }
 
-.banner-content h1 {
-  margin: 0 0 0.5rem 0;
-  font-size: 1.8rem;
-  font-weight: 700;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+.header-title {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  justify-content: center;
 }
 
-.banner-content p {
+.form-header h2 {
+  color: #2c3e50;
   margin: 0;
-  font-size: 1rem;
-  opacity: 0.9;
+  font-size: 1.5rem;
+}
+
+.form-header p {
+  color: #6c757d;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+/* 空題目狀態 */
+.empty-state {
+  background: white;
+  border-radius: 10px;
+  padding: 4rem 2rem;
+  text-align: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  margin-top: 2rem;
+}
+
+.empty-icon {
+  margin-bottom: 1rem;
+  opacity: 0.5;
+  color: #a0a0a0;
+}
+
+.empty-state h2 {
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
+  font-size: 1.8rem;
+}
+
+.empty-state p {
+  color: #6c757d;
+  margin-bottom: 2rem;
+  font-size: 1.1rem;
 }
 
 /* 測驗進行中樣式 */
@@ -416,15 +444,12 @@ const isAnswerCorrect = (questionIndex, answer) => {
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #2c3e50 0%, #34495e 100%);
+  background: linear-gradient(90deg, #cebb6b 0%, #b8a55f 100%);
   transition: width 0.3s ease;
 }
 
 .question-nav {
-  margin-bottom: 2rem;
-}
-
-.nav-buttons {
+  margin-top: 1.5rem;
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
@@ -561,7 +586,7 @@ const isAnswerCorrect = (questionIndex, answer) => {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+  background: linear-gradient(135deg, #cebb6b 0%, #b8a55f 100%);
   color: white;
 }
 
@@ -612,7 +637,7 @@ const isAnswerCorrect = (questionIndex, answer) => {
   width: 120px;
   height: 120px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+  background: linear-gradient(135deg, #cebb6b 0%, #b8a55f 100%);
   color: white;
   display: flex;
   flex-direction: column;

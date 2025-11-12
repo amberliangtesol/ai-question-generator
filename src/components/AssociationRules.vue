@@ -10,7 +10,6 @@ const handleRulesChange = (event) => {
 
 <template>
   <div class="form-group">
-    <label for="rules" class="form-label">關聯規則</label>
     <textarea
       id="rules"
       :value="questionStore.associationRules"

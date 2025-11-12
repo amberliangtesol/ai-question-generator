@@ -10,7 +10,7 @@ const handleSubjectChange = (event) => {
 
 <template>
   <div class="form-group">
-    <label for="subject" class="form-label">選擇科目</label>
+    <label for="subject" class="form-label">教學科目</label>
     <select
       id="subject"
       :value="questionStore.selectedSubject"

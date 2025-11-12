@@ -48,7 +48,8 @@ const togglePasswordVisibility = () => {
   <div class="password-login">
     <div class="login-container">
       <div class="login-header">
-        <h1><i class="fas fa-brain"></i> AI智多興出題系統</h1>
+        <img src="/logo.png" alt="AI智多興" class="login-logo" />
+        <h1>AI 智慧出題系統</h1>
         <p>請輸入密碼以訪問系統</p>
       </div>
 
@@ -105,6 +106,7 @@ const togglePasswordVisibility = () => {
   align-items: center;
   justify-content: center;
   padding: 20px;
+  background: linear-gradient(135deg, #f5f3e9 0%, #e8e4d6 100%);
 }
 
 .login-container {
@@ -131,6 +133,12 @@ const togglePasswordVisibility = () => {
 .login-header {
   text-align: center;
   margin-bottom: 30px;
+}
+
+.login-logo {
+  max-width: 180px;
+  height: auto;
+  margin-bottom: 20px;
 }
 
 .login-header h1 {
@@ -197,7 +205,8 @@ const togglePasswordVisibility = () => {
 
 .password-toggle:hover:not(:disabled) {
   opacity: 1;
-  background: rgba(0, 0, 0, 0.1);
+  background: rgba(206, 187, 107, 0.1);
+  color: #b8a55f;
 }
 
 .password-toggle:disabled {
@@ -207,9 +216,9 @@ const togglePasswordVisibility = () => {
 
 .password-input:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: #cebb6b;
   background: white;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  box-shadow: 0 0 0 3px rgba(206, 187, 107, 0.2);
 }
 
 .password-input.error {
@@ -233,7 +242,7 @@ const togglePasswordVisibility = () => {
 .login-btn {
   width: 100%;
   padding: 14px 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #cebb6b 0%, #b8a55f 100%);
   color: white;
   border: none;
   border-radius: 10px;
@@ -245,7 +254,8 @@ const togglePasswordVisibility = () => {
 
 .login-btn:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 8px 25px rgba(206, 187, 107, 0.4);
+  background: linear-gradient(135deg, #b8a55f 0%, #a69550 100%);
 }
 
 .login-btn:disabled {
@@ -256,7 +266,7 @@ const togglePasswordVisibility = () => {
 
 .login-footer {
   text-align: center;
-  color: #666;
+  color: #8b7d5c;
   font-size: 14px;
 }
 

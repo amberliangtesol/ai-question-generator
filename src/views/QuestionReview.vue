@@ -1,139 +1,142 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useQuestionStore } from '../stores/questionStore'
-import { useRouter } from 'vue-router'
-import { examPaperService } from '../services/examPaperService'
-import TopBanner from '../components/TopBanner.vue'
-import { QuestionGeneratorService } from '../services/questionGeneratorService'
+import { ref, computed, onMounted } from 'vue';
+import { useQuestionStore } from '../stores/questionStore';
+import { useRouter } from 'vue-router';
+import { examPaperService } from '../services/examPaperService';
+import TopBanner from '../components/TopBanner.vue';
+import { QuestionGeneratorService } from '../services/questionGeneratorService';
 
-const questionStore = useQuestionStore()
-const router = useRouter()
-const questionGeneratorService = new QuestionGeneratorService()
+const questionStore = useQuestionStore();
+const router = useRouter();
+const questionGeneratorService = new QuestionGeneratorService();
 
-const isExporting = ref(false)
-const selectedQuestions = ref(new Set())
-const showAllAnswers = ref(false)
-const isGenerating = ref(false)
+const isExporting = ref(false);
+const selectedQuestions = ref(new Set());
+const showAllAnswers = ref(false);
+const isGenerating = ref(false);
 
-const currentQuestions = computed(() => questionStore.currentQuestions || [])
-const hasQuestions = computed(() => currentQuestions.value.length > 0)
+const currentQuestions = computed(() => questionStore.currentQuestions || []);
+const hasQuestions = computed(() => currentQuestions.value.length > 0);
 
 const toggleQuestionSelection = (index) => {
   if (selectedQuestions.value.has(index)) {
-    selectedQuestions.value.delete(index)
+    selectedQuestions.value.delete(index);
   } else {
-    selectedQuestions.value.add(index)
+    selectedQuestions.value.add(index);
   }
-}
+};
 
 const selectAllQuestions = () => {
   if (selectedQuestions.value.size === currentQuestions.value.length) {
-    selectedQuestions.value.clear()
+    selectedQuestions.value.clear();
   } else {
     currentQuestions.value.forEach((_, index) => {
-      selectedQuestions.value.add(index)
-    })
+      selectedQuestions.value.add(index);
+    });
   }
-}
+};
 
 const exportToPDF = async () => {
   if (currentQuestions.value.length === 0) {
-    alert('沒有題目可以匯出')
-    return
+    alert('沒有題目可以匯出');
+    return;
   }
 
   try {
-    isExporting.value = true
-    
-    const questionsToExport = selectedQuestions.value.size > 0
-      ? currentQuestions.value.filter((_, index) => selectedQuestions.value.has(index))
-      : currentQuestions.value
+    isExporting.value = true;
+
+    const questionsToExport =
+      selectedQuestions.value.size > 0
+        ? currentQuestions.value.filter((_, index) =>
+            selectedQuestions.value.has(index),
+          )
+        : currentQuestions.value;
 
     await examPaperService.generatePDF(
       questionsToExport,
       questionStore.selectedGrade,
-      questionStore.selectedSubject
-    )
+      questionStore.selectedSubject,
+    );
   } catch (error) {
-    console.error('PDF匯出失敗:', error)
-    alert('PDF匯出失敗，請稍後再試')
+    console.error('PDF匯出失敗:', error);
+    alert('PDF匯出失敗，請稍後再試');
   } finally {
-    isExporting.value = false
+    isExporting.value = false;
   }
-}
+};
 
 const deleteQuestion = (index) => {
-  const updatedQuestions = [...currentQuestions.value]
-  updatedQuestions.splice(index, 1)
-  questionStore.setCurrentQuestions(updatedQuestions)
-  selectedQuestions.value.delete(index)
-}
+  const updatedQuestions = [...currentQuestions.value];
+  updatedQuestions.splice(index, 1);
+  questionStore.setCurrentQuestions(updatedQuestions);
+  selectedQuestions.value.delete(index);
+};
 
 const deleteSelectedQuestions = () => {
-  if (selectedQuestions.value.size === 0) return
-  
+  if (selectedQuestions.value.size === 0) return;
+
   const updatedQuestions = currentQuestions.value.filter(
-    (_, index) => !selectedQuestions.value.has(index)
-  )
-  questionStore.setCurrentQuestions(updatedQuestions)
-  selectedQuestions.value.clear()
-}
+    (_, index) => !selectedQuestions.value.has(index),
+  );
+  questionStore.setCurrentQuestions(updatedQuestions);
+  selectedQuestions.value.clear();
+};
 
 const navigateToGenerator = () => {
-  router.push('/')
-}
+  router.push('/');
+};
 
 const navigateToPractice = () => {
   if (currentQuestions.value.length > 0) {
-    router.push('/practice')
+    router.push('/practice');
   }
-}
+};
 
 onMounted(async () => {
-  window.scrollTo({ top: 0, behavior: 'smooth' })
-  
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
   // 檢查是否需要生成題目
   if (questionStore.isGenerating && currentQuestions.value.length === 0) {
-    await generateQuestions()
+    await generateQuestions();
   }
-})
+});
 
 const generateQuestions = async () => {
   try {
-    isGenerating.value = true
-    questionStore.setLoading(true)
-    
+    isGenerating.value = true;
+    questionStore.setLoading(true);
+
     // 清空現有題目
-    questionStore.setCurrentQuestions([])
-    
+    questionStore.setCurrentQuestions([]);
+
     const options = {
       grade: questionStore.selectedGrade,
       subject: questionStore.selectedSubject,
       associationRules: questionStore.associationRules,
       questionTypes: questionStore.questionTypes,
       extractedText: questionStore.extractedText,
-    }
-    
-    const questions = await questionGeneratorService.generateQuestions(options)
-    
-    questionStore.setCurrentQuestions(questions)
-    questionStore.setGeneratingStatus(false)
+    };
+
+    const questions = await questionGeneratorService.generateQuestions(options);
+
+    questionStore.setCurrentQuestions(questions);
+    questionStore.setGeneratingStatus(false);
   } catch (error) {
-    console.error('生成題目失敗:', error)
-    alert(`生成題目失敗：${error.message}`)
-    router.push('/')
+    console.error('生成題目失敗:', error);
+    alert(`生成題目失敗：${error.message}`);
+    router.push('/');
   } finally {
-    isGenerating.value = false
-    questionStore.setLoading(false)
-    questionStore.setGeneratingStatus(false)
+    isGenerating.value = false;
+    questionStore.setLoading(false);
+    questionStore.setGeneratingStatus(false);
   }
-}
+};
 </script>
 
 <template>
   <div class="review-page">
     <TopBanner subtitle="題目檢視" />
-    
+
     <div class="review-container">
       <div class="form-header">
         <div class="header-title">
@@ -142,111 +145,115 @@ const generateQuestions = async () => {
         </div>
       </div>
 
-    <!-- 生成中狀態 -->
-    <div v-if="isGenerating" class="generating-status">
-      <div class="generating-icon">
-        <i class="fas fa-robot fa-3x"></i>
-      </div>
-      <h3>AI 正在生成題目中...</h3>
-      <p>請稍候，系統正在為您客製化出題</p>
+      <!-- 生成中狀態 -->
+      <div v-if="isGenerating" class="generating-status">
+        <div class="generating-icon">
+          <i class="fas fa-robot fa-3x"></i>
+        </div>
+        <h3>AI 正在生成題目中...</h3>
+        <p>請稍候，系統正在為您客製化出題</p>
 
-      <div class="generating-progress">
-        <div class="progress-steps">
-          <div class="step active">
-            <span class="step-dot"></span>
-            <span>分析需求</span>
+        <div class="generating-progress">
+          <div class="progress-steps">
+            <div class="step active">
+              <span class="step-dot"></span>
+              <span>分析需求</span>
+            </div>
+            <div class="step active">
+              <span class="step-dot"></span>
+              <span>生成題目</span>
+            </div>
+            <div class="step">
+              <span class="step-dot"></span>
+              <span>格式化結果</span>
+            </div>
           </div>
-          <div class="step active">
-            <span class="step-dot"></span>
-            <span>生成題目</span>
+
+          <div class="fake-progress">
+            <div class="progress-bar-container">
+              <div class="progress-bar-fill generating-animation"></div>
+            </div>
+            <div class="progress-text">正在處理中...</div>
           </div>
-          <div class="step">
-            <span class="step-dot"></span>
-            <span>格式化結果</span>
+        </div>
+      </div>
+
+      <!-- 無題目狀態 -->
+      <div v-else-if="!hasQuestions && !isGenerating" class="empty-state">
+        <div class="empty-icon"><i class="fas fa-file-alt fa-5x"></i></div>
+        <h2>尚無題目</h2>
+        <p>請先到出題設定頁面生成題目</p>
+        <button @click="navigateToGenerator" class="btn btn-primary">
+          前往出題設定
+        </button>
+      </div>
+
+      <!-- 有題目時的內容 -->
+      <div v-else class="review-content">
+        <!-- 工具列 -->
+        <div class="toolbar">
+          <div class="toolbar-actions">
+            <button
+              @click="showAllAnswers = !showAllAnswers"
+              class="btn btn-secondary"
+            >
+              <i
+                class="fas"
+                :class="showAllAnswers ? 'fa-eye-slash' : 'fa-eye'"
+              ></i>
+              {{ showAllAnswers ? '隱藏答案' : '顯示答案' }}
+            </button>
+            <button @click="navigateToPractice" class="btn btn-success">
+              <i class="fas fa-play"></i>
+              開始作答
+            </button>
           </div>
         </div>
 
-        <div class="fake-progress">
-          <div class="progress-bar-container">
-            <div class="progress-bar-fill generating-animation"></div>
-          </div>
-          <div class="progress-text">正在處理中...</div>
-        </div>
-      </div>
-    </div>
-    
-    <!-- 無題目狀態 -->
-    <div v-else-if="!hasQuestions && !isGenerating" class="empty-state">
-      <div class="empty-icon"><i class="fas fa-file-alt fa-5x"></i></div>
-      <h2>尚無題目</h2>
-      <p>請先到出題設定頁面生成題目</p>
-      <button @click="navigateToGenerator" class="btn btn-primary">
-        前往出題設定
-      </button>
-    </div>
-
-    <!-- 有題目時的內容 -->
-    <div v-else class="review-content">
-      <!-- 工具列 -->
-      <div class="toolbar">
-        <div class="toolbar-actions">
-          <button 
-            @click="showAllAnswers = !showAllAnswers" 
-            class="btn btn-secondary"
+        <!-- 題目列表 -->
+        <div class="questions-list">
+          <div
+            v-for="(question, index) in currentQuestions"
+            :key="index"
+            class="question-card"
+            :class="{ selected: selectedQuestions.has(index) }"
           >
-            <i class="fas" :class="showAllAnswers ? 'fa-eye-slash' : 'fa-eye'"></i>
-            {{ showAllAnswers ? '隱藏答案' : '顯示答案' }}
-          </button>
-          <button 
-            @click="navigateToPractice" 
-            class="btn btn-success"
-          >
-            <i class="fas fa-play"></i>
-            開始作答
-          </button>
-        </div>
-      </div>
+            <div class="question-header">
+              <div class="question-meta">
+                <span class="question-number">第 {{ index + 1 }} 題</span>
+                <span class="question-type">{{
+                  question.type === 'single' ? '單選題' : '題組題'
+                }}</span>
+              </div>
+            </div>
 
-      <!-- 題目列表 -->
-      <div class="questions-list">
-        <div 
-          v-for="(question, index) in currentQuestions" 
-          :key="index"
-          class="question-card"
-          :class="{ selected: selectedQuestions.has(index) }"
-        >
-          <div class="question-header">
-            <div class="question-meta">
-              <span class="question-number">第 {{ index + 1 }} 題</span>
-              <span class="question-type">{{ question.type === 'single' ? '單選題' : '題組題' }}</span>
-            </div>
-          </div>
-          
-          <div class="question-body">
-            <div class="question-text">{{ question.question }}</div>
-            
-            <div class="options" v-if="question.options">
-              <div 
-                v-for="(option, optIndex) in question.options" 
-                :key="optIndex"
-                class="option"
-                :class="{ correct: showAllAnswers && option === question.answer }"
-              >
-                {{ option }}
+            <div class="question-body">
+              <div class="question-text">{{ question.question }}</div>
+
+              <div class="options" v-if="question.options">
+                <div
+                  v-for="(option, optIndex) in question.options"
+                  :key="optIndex"
+                  class="option"
+                  :class="{
+                    correct: showAllAnswers && option === question.answer,
+                  }"
+                >
+                  {{ option }}
+                </div>
               </div>
-            </div>
-            
-            <div class="answer-section" v-if="showAllAnswers">
-              <div class="answer">
-                <strong>答案：</strong>{{ question.answer }}
-              </div>
-              <div class="explanation" v-if="question.explanation">
-                <strong>解析：</strong>{{ question.explanation }}
+
+              <div class="answer-section" v-if="showAllAnswers">
+                <div class="answer">
+                  <strong>答案：</strong>{{ question.answer }}
+                </div>
+                <div class="explanation" v-if="question.explanation">
+                  <strong>解析：</strong>{{ question.explanation }}
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
       </div>
     </div>
   </div>
@@ -294,7 +301,7 @@ const generateQuestions = async () => {
   border-radius: 10px;
   padding: 4rem 2rem;
   text-align: center;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
 .empty-icon {
@@ -321,7 +328,7 @@ const generateQuestions = async () => {
   border-radius: 10px;
   padding: 4rem 2rem;
   text-align: center;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
 .generating-icon {
@@ -411,7 +418,11 @@ const generateQuestions = async () => {
 }
 
 @keyframes bounce {
-  0%, 20%, 50%, 80%, 100% {
+  0%,
+  20%,
+  50%,
+  80%,
+  100% {
     transform: translateY(0);
   }
   40% {
@@ -423,7 +434,8 @@ const generateQuestions = async () => {
 }
 
 @keyframes pulse-dot {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
   }
   50% {
@@ -447,7 +459,7 @@ const generateQuestions = async () => {
   background: white;
   border-radius: 10px;
   padding: 2rem;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
 .toolbar {
@@ -466,7 +478,6 @@ const generateQuestions = async () => {
   gap: 1rem;
 }
 
-
 .questions-list {
   display: flex;
   flex-direction: column;
@@ -481,9 +492,8 @@ const generateQuestions = async () => {
 }
 
 .question-card:hover {
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
-
 
 .question-header {
   display: flex;
@@ -498,7 +508,6 @@ const generateQuestions = async () => {
   gap: 1rem;
 }
 
-
 .question-number {
   font-weight: 600;
   color: #2c3e50;
@@ -512,7 +521,6 @@ const generateQuestions = async () => {
   font-size: 0.85rem;
   color: #6c757d;
 }
-
 
 .question-body {
   padding-left: 0;
@@ -640,20 +648,20 @@ const generateQuestions = async () => {
     flex-direction: column;
     align-items: stretch;
   }
-  
+
   .toolbar-left,
   .toolbar-right {
     justify-content: center;
   }
-  
+
   .question-body {
     padding-left: 0;
   }
-  
+
   .review-header {
     padding: 1.5rem;
   }
-  
+
   .page-title {
     font-size: 1.5rem;
   }

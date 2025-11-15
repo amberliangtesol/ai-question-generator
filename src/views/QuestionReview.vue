@@ -92,6 +92,16 @@ const navigateToPractice = () => {
   }
 };
 
+const regenerateQuestions = async () => {
+  if (confirm('確定要重新出題嗎？目前的題目將會被清除。')) {
+    await generateQuestions();
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  }
+};
+
 onMounted(async () => {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 
@@ -192,21 +202,31 @@ const generateQuestions = async () => {
       <div v-else class="review-content">
         <!-- 工具列 -->
         <div class="toolbar">
-          <div class="toolbar-actions">
-            <button
-              @click="showAllAnswers = !showAllAnswers"
-              class="btn btn-secondary"
-            >
-              <i
-                class="fas"
-                :class="showAllAnswers ? 'fa-eye-slash' : 'fa-eye'"
-              ></i>
-              {{ showAllAnswers ? '隱藏答案' : '顯示答案' }}
-            </button>
-            <button @click="navigateToPractice" class="btn btn-success">
-              <i class="fas fa-play"></i>
-              開始作答
-            </button>
+          <div class="toolbar-left">
+            <div class="toolbar-group">
+              <button @click="regenerateQuestions" class="btn btn-warning">
+                <i class="fas fa-redo"></i>
+                重新出題
+              </button>
+              <button
+                @click="showAllAnswers = !showAllAnswers"
+                class="btn btn-secondary"
+              >
+                <i
+                  class="fas"
+                  :class="showAllAnswers ? 'fa-eye-slash' : 'fa-eye'"
+                ></i>
+                {{ showAllAnswers ? '隱藏答案' : '顯示答案' }}
+              </button>
+            </div>
+          </div>
+          <div class="toolbar-right">
+            <div class="toolbar-group">
+              <button @click="navigateToPractice" class="btn btn-success">
+                <i class="fas fa-play"></i>
+                開始作答
+              </button>
+            </div>
           </div>
         </div>
 
@@ -464,7 +484,7 @@ const generateQuestions = async () => {
 
 .toolbar {
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
   padding: 1rem;
   background: #f8f9fa;
@@ -472,10 +492,30 @@ const generateQuestions = async () => {
   margin-bottom: 2rem;
 }
 
-.toolbar-actions {
+.toolbar-left,
+.toolbar-right {
   display: flex;
   align-items: center;
-  gap: 1rem;
+}
+
+.toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.group-icon {
+  font-size: 1.5rem;
+  color: #6c757d;
+  margin-right: 0.5rem;
+}
+
+.toolbar-left .group-icon {
+  color: #cebb6b;
+}
+
+.toolbar-right .group-icon {
+  color: #28a745;
 }
 
 .questions-list {
@@ -628,6 +668,16 @@ const generateQuestions = async () => {
   box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
 }
 
+.btn-warning {
+  background: linear-gradient(135deg, #ffc107 0%, #ffb300 100%);
+  color: #212529;
+}
+
+.btn-warning:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 193, 7, 0.4);
+}
+
 .btn-danger {
   background: #dc3545;
   color: white;
@@ -646,12 +696,25 @@ const generateQuestions = async () => {
 @media (max-width: 768px) {
   .toolbar {
     flex-direction: column;
-    align-items: stretch;
+    gap: 1rem;
   }
 
   .toolbar-left,
   .toolbar-right {
+    width: 100%;
+  }
+
+  .toolbar-group {
+    width: 100%;
     justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .group-icon {
+    width: 100%;
+    text-align: center;
+    margin-right: 0;
+    margin-bottom: 0.5rem;
   }
 
   .question-body {

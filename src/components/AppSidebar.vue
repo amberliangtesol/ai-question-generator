@@ -30,6 +30,13 @@ const menuItems = ref([
     path: '/practice',
     description: '練習模式',
   },
+  {
+    id: 'teacher',
+    title: '老師說明',
+    icon: 'fa-chalkboard-teacher',
+    path: '/teacher-demo',
+    description: '教學展示範例',
+  },
 ]);
 
 const handleNavigation = (path) => {

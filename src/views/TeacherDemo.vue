@@ -1,12 +1,47 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import TopBanner from '../components/TopBanner.vue';
 
 const selectedAnswer = ref('');
+const currentTimeText = ref('');
+const videoRef = ref(null);
+
+const timeTexts = [
+  { start: 19, end: 30, text: '選項 (1) 督促' },
+  { start: 30, end: 42, text: '選項 (2) 催促' },
+  { start: 43, end: 59, text: '選項 (3) 增進' },
+  { start: 60, end: 70, text: '選項 (4) 邁進' }
+];
 
 const selectOption = (option) => {
   selectedAnswer.value = option;
 };
+
+const updateTimeText = () => {
+  if (!videoRef.value) return;
+  
+  const currentTime = videoRef.value.currentTime;
+  
+  const activeText = timeTexts.find(
+    item => currentTime >= item.start && currentTime < item.end
+  );
+  
+  currentTimeText.value = activeText ? activeText.text : '';
+};
+
+onMounted(() => {
+  const video = document.querySelector('.video-wrapper video');
+  if (video) {
+    videoRef.value = video;
+    video.addEventListener('timeupdate', updateTimeText);
+  }
+});
+
+onUnmounted(() => {
+  if (videoRef.value) {
+    videoRef.value.removeEventListener('timeupdate', updateTimeText);
+  }
+});
 </script>
 
 <template>
@@ -41,6 +76,9 @@ const selectOption = (option) => {
               >
               您的瀏覽器不支援 HTML5 影片播放。
             </video>
+            <div v-if="currentTimeText" class="video-overlay-text">
+              {{ currentTimeText }}
+            </div>
           </div>
         </div>
 
@@ -175,6 +213,32 @@ const selectOption = (option) => {
   width: 100%;
   height: auto;
   display: block;
+}
+
+.video-overlay-text {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  background: rgba(200, 168, 130, 0.95);
+  color: white;
+  padding: 0.75rem 1.25rem;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  animation: fadeIn 0.3s ease-in-out;
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* 範例題目區塊 */
@@ -327,6 +391,13 @@ const selectOption = (option) => {
   .video-section,
   .example-section {
     padding: 1.5rem;
+  }
+  
+  .video-overlay-text {
+    top: 15px;
+    left: 10px;
+    font-size: 0.95rem;
+    padding: 0.5rem 0.75rem;
   }
   
   .question-text {

@@ -2,6 +2,8 @@
 
 一個基於Vue 3的智能教育題目生成系統，支援國小中文和英文科目的自動出題功能。
 
+🌐 **線上展示**: https://ai-question-generator-sandy.vercel.app
+
 ## 🔐 系統登入
 
 **預設密碼**: `nchuai`

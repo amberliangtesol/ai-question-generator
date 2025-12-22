@@ -28,18 +28,6 @@ export default defineConfig(({ mode }) => {
               proxyReq.setHeader('Authorization', `Bearer ${env.VITE_OPENAI_API_KEY}`)
             })
           }
-        },
-        '/api/claude': {
-          target: 'https://api.anthropic.com',
-          changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/api\/claude/, ''),
-          configure: (proxy, options) => {
-            proxy.on('proxyReq', (proxyReq, req, res) => {
-              proxyReq.setHeader('x-api-key', env.VITE_CLAUDE_API_KEY)
-              proxyReq.setHeader('anthropic-version', '2023-06-01')
-              proxyReq.setHeader('anthropic-dangerous-direct-browser-access', 'true')
-            })
-          }
         }
       }
     }

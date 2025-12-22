@@ -1,9 +1,8 @@
-import { OpenAIService, ClaudeService } from './apiService.js';
+import { OpenAIService } from './apiService.js';
 
 export class QuestionGeneratorService {
   constructor() {
     this.openaiService = new OpenAIService();
-    this.claudeService = new ClaudeService();
   }
 
   async generateQuestions(options) {
@@ -31,37 +30,19 @@ export class QuestionGeneratorService {
 
       return questions;
     } catch (error) {
-      console.error('OpenAI生成題目失敗:', error);
-
-      // 如果OpenAI失敗，嘗試使用Claude
-      try {
-        console.log('OpenAI失敗，嘗試使用Claude...');
-        const prompt = this.buildPrompt(
-          grade,
-          subject,
-          associationRules,
-          questionTypes,
-          extractedText,
-        );
-        const claudeResponse = await this.claudeService.generateQuestions(
-          prompt,
-        );
-        const questions = this.parseQuestions(claudeResponse.content[0].text);
-        return questions;
-      } catch (claudeError) {
-        console.error('Claude生成題目也失敗:', claudeError);
-
-        // 如果Claude是餘額不足，提供特殊提示
-        if (
-          claudeError.response?.data?.error?.message?.includes('credit balance')
-        ) {
-          throw new Error(
-            'Claude API餘額不足，OpenAI也無法使用。請檢查API設定或充值。',
-          );
-        }
-
-        throw new Error('題目生成失敗，請檢查API設定並稍後再試');
+      console.error('生成題目失敗:', error);
+      
+      // 檢查是否為 API key 錯誤
+      if (error.response?.status === 401) {
+        throw new Error('OpenAI API key 無效，請檢查設定');
       }
+      
+      // 檢查是否為餘額不足
+      if (error.response?.data?.error?.type === 'insufficient_quota') {
+        throw new Error('OpenAI API 餘額不足，請充值或檢查用量');
+      }
+      
+      throw new Error('題目生成失敗，請檢查網路連線並稍後再試');
     }
   }
 

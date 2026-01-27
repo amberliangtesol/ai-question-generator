@@ -113,9 +113,11 @@ const ruleAnalysis = computed(() => {
     const onlyPostPass = studentResults.filter(r => !r.preTestPass && r.postTestPass).length;
     const nonePass = studentResults.filter(r => !r.preTestPass && !r.postTestPass).length;
     
-    // 計算信心度
-    const confidence = totalStudents > 0 ? 
-      ((bothPass + nonePass) / totalStudents * 100).toFixed(1) : 0;
+    // 計算信心度：在前測不通過的情況下，後測也不通過的條件機率
+    // 這反映了前項困難與後項困難之間的關聯強度
+    const studentsFailedPreTest = onlyPostPass + nonePass;
+    const confidence = studentsFailedPreTest > 0 ? 
+      (nonePass / studentsFailedPreTest * 100).toFixed(1) : 0;
     
     analysis.push({
       rule,

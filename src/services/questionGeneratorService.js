@@ -6,22 +6,31 @@ export class QuestionGeneratorService {
   }
 
   async generateQuestions(options) {
-    const { grade, subject, associationRules, questionTypes, extractedText, selectedRules } =
-      options;
+    const {
+      grade,
+      subject,
+      associationRules,
+      questionTypes,
+      extractedText,
+      selectedRules,
+    } = options;
 
     try {
       // 檢查是否有前後測分離的提示語
-      const hasAntecedentPrompt = associationRules?.includes('【前項困難診斷題目】');
-      const hasConsequentPrompt = associationRules?.includes('【後項困難補強題目】');
-      
+      const hasAntecedentPrompt =
+        associationRules?.includes('【前項困難診斷題目】');
+      const hasConsequentPrompt =
+        associationRules?.includes('【後項困難補強題目】');
+
       if (hasAntecedentPrompt && hasConsequentPrompt) {
         // 分別生成前測和後測題目
         console.log('分別生成前測和後測題目...');
         console.log('選中的規則數量:', selectedRules?.length || 0);
-        
+
         // 分離前後測提示語
-        const [antecedentPrompt, consequentPrompt] = associationRules.split('--- 分隔線 ---');
-        
+        const [antecedentPrompt, consequentPrompt] =
+          associationRules.split('--- 分隔線 ---');
+
         // 生成前測題目 - 前測題目對應前項困難
         const preTestPrompt = this.buildPrompt(
           grade,
@@ -29,19 +38,20 @@ export class QuestionGeneratorService {
           antecedentPrompt,
           questionTypes,
           extractedText,
-          'pretest'
+          'pretest',
         );
-        
+
         console.log('生成前測題目...');
-        const preTestResponse = await this.openaiService.generateQuestions(preTestPrompt);
+        const preTestResponse =
+          await this.openaiService.generateQuestions(preTestPrompt);
         const preTestQuestions = this.parseQuestionsWithRules(
           preTestResponse.choices[0].message.content,
           'pretest',
           selectedRules,
           questionTypes,
-          'antecedent' // 標記為前測，對應前項困難
+          'antecedent', // 標記為前測，對應前項困難
         );
-        
+
         // 生成後測題目 - 後測題目對應後項困難
         const postTestPrompt = this.buildPrompt(
           grade,
@@ -49,24 +59,25 @@ export class QuestionGeneratorService {
           consequentPrompt,
           questionTypes,
           extractedText,
-          'posttest'
+          'posttest',
         );
-        
+
         console.log('生成後測題目...');
-        const postTestResponse = await this.openaiService.generateQuestions(postTestPrompt);
+        const postTestResponse =
+          await this.openaiService.generateQuestions(postTestPrompt);
         const postTestQuestions = this.parseQuestionsWithRules(
           postTestResponse.choices[0].message.content,
           'posttest',
           selectedRules,
           questionTypes,
-          'consequent' // 標記為後測，對應後項困難
+          'consequent', // 標記為後測，對應後項困難
         );
-        
+
         // 合併題目並返回
         return {
           preTestQuestions,
           postTestQuestions,
-          allQuestions: [...preTestQuestions, ...postTestQuestions]
+          allQuestions: [...preTestQuestions, ...postTestQuestions],
         };
       } else {
         // 原本的單一生成模式
@@ -75,40 +86,50 @@ export class QuestionGeneratorService {
           subject,
           associationRules,
           questionTypes,
-          extractedText
+          extractedText,
         );
 
         console.log('使用OpenAI生成題目...');
         const response = await this.openaiService.generateQuestions(prompt);
-        const questions = this.parseQuestions(response.choices[0].message.content);
-        
+        const questions = this.parseQuestions(
+          response.choices[0].message.content,
+        );
+
         return {
           preTestQuestions: [],
           postTestQuestions: [],
-          allQuestions: questions
+          allQuestions: questions,
         };
       }
     } catch (error) {
       console.error('生成題目失敗:', error);
-      
+
       // 檢查是否為 API key 錯誤
       if (error.response?.status === 401) {
         throw new Error('OpenAI API key 無效，請檢查設定');
       }
-      
+
       // 檢查是否為餘額不足
       if (error.response?.data?.error?.type === 'insufficient_quota') {
         throw new Error('OpenAI API 餘額不足，請充值或檢查用量');
       }
-      
+
       throw new Error('題目生成失敗，請檢查網路連線並稍後再試');
     }
   }
 
-  buildPrompt(grade, subject, associationRules, questionTypes, extractedText, testType = '') {
+  buildPrompt(
+    grade,
+    subject,
+    associationRules,
+    questionTypes,
+    extractedText,
+    testType = '',
+  ) {
     const subjectName = subject === 'chinese' ? '國文' : '英文';
     const gradeName = `國小${grade}年級`;
-    const testTypeLabel = testType === 'pretest' ? '前測' : (testType === 'posttest' ? '後測' : '');
+    const testTypeLabel =
+      testType === 'pretest' ? '前測' : testType === 'posttest' ? '後測' : '';
 
     let prompt = `請為${gradeName}${subjectName}科目生成${testTypeLabel}題目。\n\n`;
 
@@ -116,10 +137,9 @@ export class QuestionGeneratorService {
     if (subject === 'chinese') {
       prompt += `重要要求：
 1. 請勿出現任何簡體中文與拼音，務必使用繁體中文與注音
-2. 字音字形題目請使用注音符號標示讀音
-3. 【重要】所有注音必須以《教育部重編國語辭典修訂本》為唯一標準
-4. 【重要】嚴格避免使用多音字或破音字，確保每個題目的字只有單一讀音
-5. 出題前請先確認該字在《教育部重編國語辭典》中的標準讀音\n\n`;
+2. 【重要】所有注音必須以《教育部重編國語辭典修訂本》為唯一標準
+3. 【重要】嚴格避免使用多音字或破音字，確保每個題目的字只有單一讀音
+4. 出題前請先確認該字在《教育部重編國語辭典》中的標準讀音\n\n`;
     }
 
     // 添加關聯規則
@@ -207,8 +227,8 @@ export class QuestionGeneratorService {
           ...q,
           id: index + 1,
           testType: testType, // 標記是前測或後測
-          ruleIds: selectedRules?.map(r => r.rank) || [], // 關聯的規則ID
-          globalId: `${testType}_${index + 1}` // 全局唯一ID
+          ruleIds: selectedRules?.map((r) => r.rank) || [], // 關聯的規則ID
+          globalId: `${testType}_${index + 1}`, // 全局唯一ID
         }));
       }
 
@@ -221,41 +241,50 @@ export class QuestionGeneratorService {
       return this.getFallbackQuestions();
     }
   }
-  
+
   // 新增方法：為題目分配對應的規則ID
-  parseQuestionsWithRules(responseText, testType = '', selectedRules = [], questionTypes = [], ruleType = '') {
+  parseQuestionsWithRules(
+    responseText,
+    testType = '',
+    selectedRules = [],
+    questionTypes = [],
+    ruleType = '',
+  ) {
     try {
       // 嘗試提取JSON部分
       const jsonMatch = responseText.match(/\[[\s\S]*\]/);
       if (jsonMatch) {
         const questions = JSON.parse(jsonMatch[0]);
-        
+
         // 如果有多個規則，平均分配題目到各個規則
         const rulesCount = selectedRules?.length || 1;
         const questionsPerRule = Math.ceil(questions.length / rulesCount);
-        
+
         console.log(`[${testType}] 解析題目:`, {
           總題數: questions.length,
           規則數: rulesCount,
           每規則題數: questionsPerRule,
-          規則類型: ruleType
+          規則類型: ruleType,
         });
-        
+
         return questions.map((q, index) => {
           // 計算這個題目應該屬於哪個規則
           const ruleIndex = Math.floor(index / questionsPerRule);
           const assignedRule = selectedRules[ruleIndex] || selectedRules[0];
-          
+
           // 記錄分配情況
-          console.log(`題目 ${index + 1} 分配給規則:`, assignedRule?.rank || '無');
-          
+          console.log(
+            `題目 ${index + 1} 分配給規則:`,
+            assignedRule?.rank || '無',
+          );
+
           return {
             ...q,
             id: index + 1,
             testType: testType, // 標記是前測或後測
             ruleIds: assignedRule ? [assignedRule.rank] : [], // 只關聯對應的規則ID
             globalId: `${testType}_${index + 1}`, // 全局唯一ID
-            ruleType: ruleType // 記錄是前項還是後項
+            ruleType: ruleType, // 記錄是前項還是後項
           };
         });
       }

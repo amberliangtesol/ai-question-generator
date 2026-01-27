@@ -4,6 +4,9 @@ import { ref, computed } from 'vue'
 export const useQuestionStore = defineStore('question', () => {
   // 狀態
   const currentQuestions = ref([])
+  const preTestQuestions = ref([]) // 前測題目
+  const postTestQuestions = ref([]) // 後測題目
+  const selectedRules = ref([]) // 選中的關聯規則
   const selectedGrade = ref('')
   const selectedSubject = ref('')
   const associationRules = ref('')
@@ -14,18 +17,21 @@ export const useQuestionStore = defineStore('question', () => {
   const isLoading = ref(false)
   const isProcessingFile = ref(false)
   const isGenerating = ref(false)
+  const studentAnswers = ref([]) // 學生作答記錄
 
   // 年段選項
   const gradeOptions = [
+    { value: '1', label: '國小一年級' },
+    { value: '2', label: '國小二年級' },
+    { value: '3', label: '國小三年級' },
     { value: '4', label: '國小四年級' },
     { value: '5', label: '國小五年級' },
     { value: '6', label: '國小六年級' }
   ]
 
-  // 科目選項
+  // 科目選項 - 只顯示國文
   const subjectOptions = [
-    { value: 'chinese', label: '國文' },
-    { value: 'english', label: '英文' }
+    { value: 'chinese', label: '國文' }
   ]
 
   // 國文題型選項
@@ -96,6 +102,18 @@ export const useQuestionStore = defineStore('question', () => {
   const setCurrentQuestions = (questions) => {
     currentQuestions.value = questions
   }
+  
+  const setPreTestQuestions = (questions) => {
+    preTestQuestions.value = questions
+  }
+  
+  const setPostTestQuestions = (questions) => {
+    postTestQuestions.value = questions
+  }
+  
+  const setSelectedRules = (rules) => {
+    selectedRules.value = rules
+  }
 
   const setLoading = (loading) => {
     isLoading.value = loading
@@ -107,6 +125,14 @@ export const useQuestionStore = defineStore('question', () => {
 
   const setGeneratingStatus = (generating) => {
     isGenerating.value = generating
+  }
+  
+  const setStudentAnswers = (answers) => {
+    studentAnswers.value = answers
+  }
+  
+  const addStudentAnswer = (answer) => {
+    studentAnswers.value.push(answer)
   }
 
   const resetForm = () => {
@@ -122,6 +148,9 @@ export const useQuestionStore = defineStore('question', () => {
   return {
     // 狀態
     currentQuestions,
+    preTestQuestions,
+    postTestQuestions,
+    selectedRules,
     selectedGrade,
     selectedSubject,
     associationRules,
@@ -132,6 +161,7 @@ export const useQuestionStore = defineStore('question', () => {
     isLoading,
     isProcessingFile,
     isGenerating,
+    studentAnswers,
     
     // 選項
     gradeOptions,
@@ -147,9 +177,14 @@ export const useQuestionStore = defineStore('question', () => {
     setUploadedFile,
     setExtractedText,
     setCurrentQuestions,
+    setPreTestQuestions,
+    setPostTestQuestions,
+    setSelectedRules,
     setLoading,
     setProcessingFile,
     setGeneratingStatus,
+    setStudentAnswers,
+    addStudentAnswer,
     resetForm
   }
 })

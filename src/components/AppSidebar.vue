@@ -31,6 +31,14 @@ const menuItems = ref([
     description: '練習模式',
   },
   {
+    id: 'analysis',
+    title: '作答分析',
+    icon: 'fa-chart-bar',
+    path: '/analysis',
+    description: '前後測對應分析',
+    badge: computed(() => questionStore.studentAnswers?.length || 0),
+  },
+  {
     id: 'teacher',
     title: '老師說明',
     icon: 'fa-chalkboard-teacher',

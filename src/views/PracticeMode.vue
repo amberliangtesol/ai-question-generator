@@ -88,7 +88,53 @@ const submitTest = () => {
   }
 
   endTime.value = new Date();
+  
+  // 儲存學生作答記錄
+  saveStudentAnswers();
+  
   showResults.value = true;
+};
+
+// 儲存學生作答記錄
+const saveStudentAnswers = () => {
+  // 分離前測和後測的答案
+  const preTestAnswers = {};
+  const postTestAnswers = {};
+  
+  questionStore.currentQuestions.forEach((question, index) => {
+    const userAnswer = userAnswers.value[index];
+    
+    if (question.testType === 'pretest') {
+      // 找到在前測題目中的索引
+      const preIdx = questionStore.preTestQuestions.findIndex(q => q.globalId === question.globalId);
+      if (preIdx !== -1) {
+        preTestAnswers[preIdx] = userAnswer;
+      }
+    } else if (question.testType === 'posttest') {
+      // 找到在後測題目中的索引
+      const postIdx = questionStore.postTestQuestions.findIndex(q => q.globalId === question.globalId);
+      if (postIdx !== -1) {
+        postTestAnswers[postIdx] = userAnswer;
+      }
+    }
+  });
+  
+  // 建立學生記錄 (簡化版，只用編號)
+  const existingCount = questionStore.studentAnswers.length;
+  const studentRecord = {
+    id: existingCount + 1,
+    name: `學生${existingCount + 1}`,
+    preTestAnswers,
+    postTestAnswers,
+    timestamp: new Date(),
+    elapsedTime: getElapsedTime(),
+    score: score.value
+  };
+  
+  // 添加到 store
+  questionStore.addStudentAnswer(studentRecord);
+  
+  console.log('已儲存學生作答記錄:', studentRecord);
 };
 
 const restartTest = () => {
@@ -224,10 +270,6 @@ const jumpToQuestion = (index) => {
         </button>
 
         <div class="center-controls">
-          <button @click="backToGenerator" class="btn btn-outline">
-            返回出題
-          </button>
-
           <button v-if="canSubmit" @click="submitTest" class="btn btn-success">
             提交測驗
           </button>
@@ -339,9 +381,6 @@ const jumpToQuestion = (index) => {
 
       <div class="results-actions">
         <button @click="restartTest" class="btn btn-primary">重新測驗</button>
-        <button @click="backToGenerator" class="btn btn-secondary">
-          返回出題
-        </button>
       </div>
     </div>
   </div>

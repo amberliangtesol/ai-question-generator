@@ -16,7 +16,23 @@ const showAllAnswers = ref(false);
 const isGenerating = ref(false);
 
 const currentQuestions = computed(() => questionStore.currentQuestions || []);
+const preTestQuestions = computed(() => questionStore.preTestQuestions || []);
+const postTestQuestions = computed(() => questionStore.postTestQuestions || []);
 const hasQuestions = computed(() => currentQuestions.value.length > 0);
+const hasPrePostTest = computed(() => preTestQuestions.value.length > 0 || postTestQuestions.value.length > 0);
+const selectedTab = ref('all'); // 'all', 'pretest', 'posttest'
+
+// 根據選擇的頁籤返回對應的題目
+const displayedQuestions = computed(() => {
+  switch (selectedTab.value) {
+    case 'pretest':
+      return preTestQuestions.value;
+    case 'posttest':
+      return postTestQuestions.value;
+    default:
+      return currentQuestions.value;
+  }
+});
 
 const toggleQuestionSelection = (index) => {
   if (selectedQuestions.value.has(index)) {
@@ -92,6 +108,10 @@ const navigateToPractice = () => {
   }
 };
 
+const navigateToTeacherScore = () => {
+  router.push('/teacher-score');
+};
+
 const regenerateQuestions = async () => {
   if (confirm('確定要重新出題嗎？目前的題目將會被清除。')) {
     await generateQuestions();
@@ -125,11 +145,19 @@ const generateQuestions = async () => {
       associationRules: questionStore.associationRules,
       questionTypes: questionStore.questionTypes,
       extractedText: questionStore.extractedText,
+      selectedRules: questionStore.selectedRules,
     };
 
-    const questions = await questionGeneratorService.generateQuestions(options);
+    const result = await questionGeneratorService.generateQuestions(options);
 
-    questionStore.setCurrentQuestions(questions);
+    // 處理前後測分離的結果
+    if (result.preTestQuestions && result.postTestQuestions) {
+      questionStore.setPreTestQuestions(result.preTestQuestions);
+      questionStore.setPostTestQuestions(result.postTestQuestions);
+      questionStore.setCurrentQuestions(result.allQuestions);
+    } else {
+      questionStore.setCurrentQuestions(result.allQuestions || result);
+    }
     questionStore.setGeneratingStatus(false);
   } catch (error) {
     console.error('生成題目失敗:', error);
@@ -200,6 +228,33 @@ const generateQuestions = async () => {
 
       <!-- 有題目時的內容 -->
       <div v-else class="review-content">
+        <!-- 頁籤選擇器（只在有前後測時顯示） -->
+        <div v-if="hasPrePostTest" class="tabs-container">
+          <div class="tabs">
+            <button
+              @click="selectedTab = 'all'"
+              :class="['tab', { active: selectedTab === 'all' }]"
+            >
+              <i class="fas fa-list"></i>
+              全部題目 ({{ currentQuestions.length }})
+            </button>
+            <button
+              @click="selectedTab = 'pretest'"
+              :class="['tab', { active: selectedTab === 'pretest' }]"
+            >
+              <i class="fas fa-diagnoses"></i>
+              前測題目 ({{ preTestQuestions.length }})
+            </button>
+            <button
+              @click="selectedTab = 'posttest'"
+              :class="['tab', { active: selectedTab === 'posttest' }]"
+            >
+              <i class="fas fa-graduation-cap"></i>
+              後測題目 ({{ postTestQuestions.length }})
+            </button>
+          </div>
+        </div>
+
         <!-- 工具列 -->
         <div class="toolbar">
           <div class="toolbar-left">
@@ -233,8 +288,8 @@ const generateQuestions = async () => {
         <!-- 題目列表 -->
         <div class="questions-list">
           <div
-            v-for="(question, index) in currentQuestions"
-            :key="index"
+            v-for="(question, index) in displayedQuestions"
+            :key="question.globalId || index"
             class="question-card"
             :class="{ selected: selectedQuestions.has(index) }"
           >
@@ -244,6 +299,10 @@ const generateQuestions = async () => {
                 <span class="question-type">{{
                   question.type === 'single' ? '單選題' : '題組題'
                 }}</span>
+                <!-- 顯示前後測標記 -->
+                <span v-if="question.testType" :class="['test-badge', question.testType]">
+                  {{ question.testType === 'pretest' ? '前測' : '後測' }}
+                </span>
               </div>
             </div>
 
@@ -288,6 +347,71 @@ const generateQuestions = async () => {
   width: 100%;
   padding: 2rem;
   margin-top: 80px;
+}
+
+/* 頁籤樣式 */
+.tabs-container {
+  margin-bottom: 1.5rem;
+  background: white;
+  border-radius: 10px;
+  padding: 1rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 2px solid #e9ecef;
+  padding-bottom: 0;
+}
+
+.tab {
+  padding: 0.75rem 1.5rem;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: #6c757d;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: -2px;
+}
+
+.tab:hover {
+  color: #495057;
+  background: #f8f9fa;
+}
+
+.tab.active {
+  color: #c8a882;
+  border-bottom-color: #c8a882;
+  font-weight: 600;
+}
+
+.tab i {
+  font-size: 0.9rem;
+}
+
+/* 前後測標記 */
+.test-badge {
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-left: 0.5rem;
+}
+
+.test-badge.pretest {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+.test-badge.posttest {
+  background: #fce4ec;
+  color: #c2185b;
 }
 
 /* form-header 樣式 */
@@ -676,6 +800,16 @@ const generateQuestions = async () => {
 .btn-warning:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(255, 193, 7, 0.4);
+}
+
+.btn-info {
+  background: linear-gradient(135deg, #17a2b8 0%, #148a9d 100%);
+  color: white;
+}
+
+.btn-info:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(23, 162, 184, 0.4);
 }
 
 .btn-danger {

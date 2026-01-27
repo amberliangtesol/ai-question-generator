@@ -1,10 +1,9 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useQuestionStore } from '../stores/questionStore';
 import { useRouter } from 'vue-router';
 import { QuestionGeneratorService } from '../services/questionGeneratorService';
 import GradeSelector from '../components/GradeSelector.vue';
-import SubjectSelector from '../components/SubjectSelector.vue';
 import AssociationRules from '../components/AssociationRules.vue';
 import QuestionTypeSelector from '../components/QuestionTypeSelector.vue';
 import FileUpload from '../components/FileUpload.vue';
@@ -15,10 +14,14 @@ const router = useRouter();
 const questionGeneratorService = new QuestionGeneratorService();
 const isGenerating = ref(false);
 
+// 自動設定科目為國文
+onMounted(() => {
+  questionStore.setSubject('chinese');
+});
+
 const canGenerate = computed(() => {
   return (
     questionStore.selectedGrade &&
-    questionStore.selectedSubject &&
     questionStore.questionTypes.length > 0 &&
     questionStore.questionCount > 0 &&
     !questionStore.isProcessingFile
@@ -64,7 +67,6 @@ const resetForm = () => {
             </div>
             <div class="form-grid">
               <GradeSelector />
-              <SubjectSelector />
             </div>
           </div>
 
@@ -72,21 +74,21 @@ const resetForm = () => {
             <div class="section-header">
               <div class="step-number">2</div>
               <div class="step-info">
-                <h3>題型與題數</h3>
+                <h3>出題內容</h3>
+                <span class="step-desc">設定關聯規則</span>
               </div>
             </div>
-            <QuestionTypeSelector />
+            <AssociationRules />
           </div>
 
           <div class="form-section">
             <div class="section-header">
               <div class="step-number">3</div>
               <div class="step-info">
-                <h3>出題內容</h3>
-                <span class="step-desc">設定關聯規則</span>
+                <h3>題型與題數</h3>
               </div>
             </div>
-            <AssociationRules />
+            <QuestionTypeSelector />
           </div>
 
           <div class="form-section">

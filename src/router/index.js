@@ -3,6 +3,8 @@ import QuestionGenerator from '../views/QuestionGenerator.vue'
 import QuestionReview from '../views/QuestionReview.vue'
 import PracticeMode from '../views/PracticeMode.vue'
 import TeacherDemo from '../views/TeacherDemo.vue'
+import TeacherScoreView from '../views/TeacherScoreView.vue'
+import AnswerAnalysis from '../views/AnswerAnalysis.vue'
 
 const routes = [
   {
@@ -21,9 +23,19 @@ const routes = [
     component: PracticeMode
   },
   {
+    path: '/analysis',
+    name: 'AnswerAnalysis',
+    component: AnswerAnalysis
+  },
+  {
     path: '/teacher-demo',
     name: 'TeacherDemo',
     component: TeacherDemo
+  },
+  {
+    path: '/teacher-score',
+    name: 'TeacherScoreView',
+    component: TeacherScoreView
   },
   {
     path: '/:pathMatch(.*)*',

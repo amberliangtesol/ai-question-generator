@@ -10,6 +10,14 @@ const handleGradeChange = (event) => {
 
 <template>
   <div class="grade-subject-wrapper">
+    <div class="subject-display">
+      <label class="form-label">教學科目</label>
+      <div class="subject-badge">
+        <i class="fas fa-book"></i>
+        國文科
+      </div>
+    </div>
+
     <div class="form-group">
       <label for="grade" class="form-label">教學年段</label>
       <select
@@ -27,14 +35,6 @@ const handleGradeChange = (event) => {
           {{ grade.label }}
         </option>
       </select>
-    </div>
-    
-    <div class="subject-display">
-      <label class="form-label">教學科目</label>
-      <div class="subject-badge">
-        <i class="fas fa-book"></i>
-        國文科
-      </div>
     </div>
   </div>
 </template>
@@ -66,7 +66,9 @@ const handleGradeChange = (event) => {
   border-radius: 5px;
   font-size: 1rem;
   background-color: white;
-  transition: border-color 0.3s, box-shadow 0.3s;
+  transition:
+    border-color 0.3s,
+    box-shadow 0.3s;
 }
 
 .form-select:focus {

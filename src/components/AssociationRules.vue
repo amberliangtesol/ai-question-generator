@@ -79,51 +79,130 @@ const generatePrompt = () => {
     return;
   }
 
-  // 生成前項困難提示語
-  let aPrompt = `你是一位資深的教育數據分析師與補救教學專家。\n\n`;
-  aPrompt += `【前項困難診斷題目】\n`;
-  aPrompt += `以下是學生可能存在的基礎學習困難點，請針對這些內容出題來診斷學生的掌握程度：\n\n`;
-  
-  selectedRules.value.forEach((rule, index) => {
-    aPrompt += `困難點 ${index + 1}：\n`;
-    aPrompt += `- 內容：${rule.aImplication || rule.antecedents}\n`;
-    if (rule.aBasicContent) {
-      aPrompt += `- 基本學習內容：${rule.aBasicContent}\n`;
-    }
-    aPrompt += `- 相關信心度：${(rule.confidence * 100).toFixed(1)}%\n`;
-    
-    if (index < selectedRules.value.length - 1) {
-      aPrompt += '\n';
+  const gradeName = `國小${questionStore.selectedGrade}年級`;
+
+  // 處理內容並移除 Q 編號的函數
+  const processContent = (content) => {
+    if (!content) return '';
+    // 移除 Q+數字 的模式（例如 Q16, Q18）
+    return content.replace(/Q\d+[\s｜|]*/g, '').trim();
+  };
+
+  // 生成前項困難提示語 - 使用 108 課綱格式
+  let aPrompt = `你是一位熟悉台灣 108 課綱國語文領域的${gradeName}國文老師，請設計題目來診斷學生是否掌握以下基礎概念。\n\n`;
+  aPrompt += `對應 108 課綱基本學習內容\n`;
+
+  // 使用 Set 來追蹤已經添加的規則，避免重複
+  const addedRulesA = new Set();
+
+  selectedRules.value.forEach((rule) => {
+    // 處理可能有斜線分隔的內容
+    const aBasicContents = rule.aBasicContent
+      ? rule.aBasicContent.split(' / ')
+      : [];
+    const aImplications = (rule.aImplication || rule.antecedents || '').split(
+      ' / ',
+    );
+
+    // 對每個基本學習內容分別處理
+    aImplications.forEach((imp, idx) => {
+      const processedImplication = processContent(imp.trim());
+      const basicContent = aBasicContents[idx]?.trim() || '';
+
+      if (processedImplication || basicContent) {
+        // 建立規則字串，格式：含意在前，基本學習內容在後
+        let ruleString = '';
+        if (processedImplication && basicContent) {
+          ruleString = `* ${processedImplication}: ${basicContent}`;
+        } else if (processedImplication) {
+          ruleString = `* ${processedImplication}`;
+        } else if (basicContent) {
+          ruleString = `* ${basicContent}`;
+        }
+
+        // 只有當規則尚未添加時才加入
+        if (ruleString && !addedRulesA.has(ruleString)) {
+          aPrompt += ruleString + '\n';
+          addedRulesA.add(ruleString);
+        }
+      }
+    });
+
+    // 處理多餘的基本學習內容（如果基本學習內容比含意多）
+    if (aBasicContents.length > aImplications.length) {
+      for (let i = aImplications.length; i < aBasicContents.length; i++) {
+        const basicContent = aBasicContents[i]?.trim();
+        if (basicContent) {
+          const ruleString = `* ${basicContent}`;
+          if (!addedRulesA.has(ruleString)) {
+            aPrompt += ruleString + '\n';
+            addedRulesA.add(ruleString);
+          }
+        }
+      }
     }
   });
-  
-  aPrompt += `\n請設計題目來診斷學生是否掌握以上基礎概念。`;
-  
-  // 生成後項困難提示語
-  let bPrompt = `你是一位資深的教育數據分析師與補救教學專家。\n\n`;
-  bPrompt += `【後項困難補強題目】\n`;
-  bPrompt += `基於前項困難，學生可能在以下進階內容也會有困難，請針對這些內容出題來幫助學生練習：\n\n`;
-  
-  selectedRules.value.forEach((rule, index) => {
-    bPrompt += `進階困難點 ${index + 1}：\n`;
-    bPrompt += `- 內容：${rule.bImplication || rule.consequents}\n`;
-    if (rule.bBasicContent) {
-      bPrompt += `- 基本學習內容：${rule.bBasicContent}\n`;
-    }
-    bPrompt += `- 與前項關聯度：${(rule.confidence * 100).toFixed(1)}%\n`;
-    
-    if (index < selectedRules.value.length - 1) {
-      bPrompt += '\n';
+
+  // 生成後項困難提示語 - 使用 108 課綱格式
+  let bPrompt = `你是一位熟悉台灣 108 課綱國語文領域的${gradeName}國文老師，請設計題目來診斷學生是否掌握以下基礎概念。\n\n`;
+  bPrompt += `對應 108 課綱基本學習內容\n`;
+
+  // 使用 Set 來追蹤已經添加的規則，避免重複
+  const addedRulesB = new Set();
+
+  selectedRules.value.forEach((rule) => {
+    // 處理可能有斜線分隔的內容
+    const bBasicContents = rule.bBasicContent
+      ? rule.bBasicContent.split(' / ')
+      : [];
+    const bImplications = (rule.bImplication || rule.consequents || '').split(
+      ' / ',
+    );
+
+    // 對每個基本學習內容分別處理
+    bImplications.forEach((imp, idx) => {
+      const processedImplication = processContent(imp.trim());
+      const basicContent = bBasicContents[idx]?.trim() || '';
+
+      if (processedImplication || basicContent) {
+        // 建立規則字串，格式：含意在前，基本學習內容在後
+        let ruleString = '';
+        if (processedImplication && basicContent) {
+          ruleString = `* ${processedImplication}: ${basicContent}`;
+        } else if (processedImplication) {
+          ruleString = `* ${processedImplication}`;
+        } else if (basicContent) {
+          ruleString = `* ${basicContent}`;
+        }
+
+        // 只有當規則尚未添加時才加入
+        if (ruleString && !addedRulesB.has(ruleString)) {
+          bPrompt += ruleString + '\n';
+          addedRulesB.add(ruleString);
+        }
+      }
+    });
+
+    // 處理多餘的基本學習內容（如果基本學習內容比含意多）
+    if (bBasicContents.length > bImplications.length) {
+      for (let i = bImplications.length; i < bBasicContents.length; i++) {
+        const basicContent = bBasicContents[i]?.trim();
+        if (basicContent) {
+          const ruleString = `* ${basicContent}`;
+          if (!addedRulesB.has(ruleString)) {
+            bPrompt += ruleString + '\n';
+            addedRulesB.add(ruleString);
+          }
+        }
+      }
     }
   });
-  
-  bPrompt += `\n請設計題目來加強學生對這些進階概念的理解。`;
-  
+
   antecedentPrompt.value = aPrompt;
   consequentPrompt.value = bPrompt;
-  
-  // 合併兩個 prompt 存入 store（如果需要）
-  const combinedPrompt = `${aPrompt}\n\n--- 分隔線 ---\n\n${bPrompt}`;
+
+  // 合併兩個 prompt 存入 store，並在兩段之間保留分隔線（但前後標題已經移除）
+  const combinedPrompt = `【前項困難診斷題目】\n${aPrompt}\n--- 分隔線 ---\n\n【後項困難補強題目】\n${bPrompt}`;
   questionStore.setAssociationRules(combinedPrompt);
 };
 
@@ -290,7 +369,7 @@ const formatRuleContent = (implication, basicContent) => {
       <!-- 前項困難出題 -->
       <div class="prompt-section">
         <label class="prompt-label">
-          <i class="fas fa-diagnoses"></i> 前項困難診斷題目 (AI 提示語)
+          <i class="fas fa-diagnoses"></i> 前項困難診斷題目 (AI 提示詞)
         </label>
         <textarea
           :value="antecedentPrompt"
@@ -304,11 +383,11 @@ const formatRuleContent = (implication, basicContent) => {
           rows="8"
         />
       </div>
-      
+
       <!-- 後項困難出題 -->
       <div class="prompt-section">
         <label class="prompt-label">
-          <i class="fas fa-graduation-cap"></i> 後項困難補強題目 (AI 提示語)
+          <i class="fas fa-graduation-cap"></i> 後項困難補強題目 (AI 提示詞)
         </label>
         <textarea
           :value="consequentPrompt"

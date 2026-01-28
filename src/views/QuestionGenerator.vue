@@ -14,9 +14,11 @@ const router = useRouter();
 const questionGeneratorService = new QuestionGeneratorService();
 const isGenerating = ref(false);
 
-// 自動設定科目為國文
+// 自動設定科目為國文，並清除年級選擇
 onMounted(() => {
   questionStore.setSubject('chinese');
+  questionStore.setGrade(''); // 清除年級選擇，避免顯示無關聯規則提示
+  questionStore.setAssociationRules(''); // 清除關聯規則
 });
 
 const canGenerate = computed(() => {

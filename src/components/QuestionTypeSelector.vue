@@ -72,7 +72,7 @@ const getTypeCount = (category, type) => {
       <div v-else class="type-categories">
         <!-- 單選題 -->
         <div class="type-category">
-          <h4 class="category-title">單選題</h4>
+          <h4 class="category-title">題型選擇</h4>
           <div class="type-options">
             <div
               v-for="type in questionStore.availableQuestionTypes.single"
@@ -131,76 +131,6 @@ const getTypeCount = (category, type) => {
                     "
                     class="count-btn"
                     :disabled="getTypeCount('single', type) >= 20"
-                  >
-                    +
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 題組題 -->
-        <div class="type-category">
-          <h4 class="category-title">題組題</h4>
-          <div class="type-options">
-            <div
-              v-for="type in questionStore.availableQuestionTypes.group"
-              :key="type.value"
-              class="type-option"
-              :class="{ selected: isTypeSelected('group', type) }"
-            >
-              <div class="type-header">
-                <label class="type-checkbox">
-                  <input
-                    type="checkbox"
-                    :checked="isTypeSelected('group', type)"
-                    @change="toggleQuestionType('group', type)"
-                  />
-                  <span class="checkmark"></span>
-                  {{ type.label }}
-                </label>
-              </div>
-
-              <div v-if="isTypeSelected('group', type)" class="count-selector">
-                <label class="count-label">題組數：</label>
-                <div class="count-input-group">
-                  <button
-                    type="button"
-                    @click="
-                      updateTypeCount(
-                        `group_${type.value}`,
-                        getTypeCount('group', type) - 1,
-                      )
-                    "
-                    class="count-btn"
-                    :disabled="getTypeCount('group', type) <= 1"
-                  >
-                    −
-                  </button>
-                  <input
-                    type="number"
-                    :value="getTypeCount('group', type)"
-                    @input="
-                      updateTypeCount(
-                        `group_${type.value}`,
-                        parseInt($event.target.value) || 1,
-                      )
-                    "
-                    class="count-input"
-                    min="1"
-                    max="10"
-                  />
-                  <button
-                    type="button"
-                    @click="
-                      updateTypeCount(
-                        `group_${type.value}`,
-                        getTypeCount('group', type) + 1,
-                      )
-                    "
-                    class="count-btn"
-                    :disabled="getTypeCount('group', type) >= 10"
                   >
                     +
                   </button>

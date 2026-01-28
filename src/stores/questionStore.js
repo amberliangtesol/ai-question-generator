@@ -41,22 +41,20 @@ export const useQuestionStore = defineStore('question', () => {
       { value: 'vocabulary', label: '詞語情境應用克漏字' },
       { value: 'idiom', label: '成語情境應用' },
       { value: 'sentence', label: '句意分析與重組' },
-      { value: 'rhetoric', label: '國學常識與修辭' }
-    ],
-    group: [
+      { value: 'rhetoric', label: '國學常識與修辭' },
       { value: 'reading', label: '文意推論與摘要選擇題' }
-    ]
+    ],
+    group: []
   }
 
   // 英文題型選項
   const englishQuestionTypes = {
     single: [
       { value: 'grammar', label: '文法句型' },
-      { value: 'cloze', label: '閱讀填空' }
-    ],
-    group: [
+      { value: 'cloze', label: '閱讀填空' },
       { value: 'comprehension', label: '閱讀理解' }
-    ]
+    ],
+    group: []
   }
 
   // 計算屬性
@@ -137,8 +135,9 @@ export const useQuestionStore = defineStore('question', () => {
 
   const resetForm = () => {
     selectedGrade.value = ''
-    selectedSubject.value = ''
+    selectedSubject.value = 'chinese' // 保持科目為中文
     associationRules.value = ''
+    selectedRules.value = [] // 清除選中的規則
     questionTypes.value = []
     questionCount.value = 5
     uploadedFile.value = null

@@ -32,7 +32,7 @@ export class OpenAIService {
           {
             role: 'system',
             content:
-              '你是一位專業的國小教師，負責出題。請根據用戶的需求生成適合的題目。',
+              '你是一位熟悉 台灣 108 課綱國語文領域 的國小國文老師，請設計題目來診斷學生是否掌握以下基礎概念。',
           },
           {
             role: 'user',
@@ -52,17 +52,17 @@ export class OpenAIService {
   async uploadFile(file) {
     try {
       console.log('上傳文件到 OpenAI Files API...');
-      
+
       const formData = new FormData();
       formData.append('file', file);
       formData.append('purpose', 'user_data');
-      
+
       const response = await this.client.post('/files', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
-      
+
       console.log('文件上傳成功:', response.data);
       return response.data.id;
     } catch (error) {
@@ -74,7 +74,7 @@ export class OpenAIService {
   async extractTextFromFile(fileId) {
     try {
       console.log('使用 GPT 分析 PDF 文件內容...');
-      
+
       const response = await this.client.post('/chat/completions', {
         model: 'gpt-4o',
         max_tokens: 4000,
@@ -105,7 +105,7 @@ export class OpenAIService {
       ) {
         return response.data.choices[0].message.content;
       }
-      
+
       return null;
     } catch (error) {
       console.error('OpenAI 文件分析錯誤:', error);

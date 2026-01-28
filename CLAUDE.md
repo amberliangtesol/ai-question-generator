@@ -26,6 +26,8 @@
   - 支援前測/後測分離生成
   - 題目與關聯規則ID對應
   - 依據選中規則自動分配題目
+  - 整合 words.json 作為字音字形題型的唯一可信資料來源
+  - 層級化 prompt 結構（系統約束→資料來源→輸出格式）
 
 ### 3. PDF匯出系統
 - **檔案**: `src/services/examPaperService.js`
@@ -51,6 +53,7 @@
   - 分析前測與後測的對應關係
   - 計算每個規則的學生通過率
   - 顯示信心度統計
+  - 規則標題明確標示「前項困難」與「後項困難」
 
 ## 開發命令
 
@@ -102,20 +105,45 @@ src/
 ├── components/          # 可重用元件
 │   ├── PasswordLogin.vue
 │   ├── GeneratedQuestions.vue
-│   └── QuestionTypeSelector.vue
+│   ├── QuestionTypeSelector.vue
+│   ├── AssociationRules.vue
+│   └── GradeSelector.vue
 ├── views/              # 頁面元件
 │   ├── QuestionGenerator.vue
-│   └── PracticeMode.vue
+│   ├── PracticeMode.vue
+│   └── AnswerAnalysis.vue
 ├── services/           # 業務邏輯服務
 │   ├── questionGeneratorService.js
-│   └── examPaperService.js
+│   ├── examPaperService.js
+│   └── apiService.js
 ├── stores/             # Pinia 狀態管理
 │   └── questionStore.js
 └── router/             # 路由設定
     └── index.js
+words.json              # 字音字形資料庫
 ```
 
 ## 近期更新記錄
+
+### 2024-01-28 更新
+- ✅ 重構題目生成系統 prompt 結構
+  - 建立清晰的層級結構（系統約束→資料來源→輸出格式）
+  - 整合 words.json 作為字音字形題型的唯一可信資料來源
+  - 實作硬性規則優先順序機制
+- ✅ 優化題型管理
+  - 移除題組題分類，統一為單選題格式
+  - 將「文意推論與摘要選擇題」移至單選題類別
+- ✅ 改善關聯規則顯示
+  - 自動移除Q編號、前後項困難標記等不必要文字
+  - 實作去重複機制，避免相同規則重複出現
+  - 調整格式為「含意: 基本學習內容」結構
+- ✅ 優化作答分析頁面
+  - 規則標題明確標示「前項困難」與「後項困難」
+  - 改善視覺層級結構
+- ✅ 頁面體驗優化
+  - 頁面刷新時自動清除年級選擇，避免無關聯規則提示
+
+### 先前更新
 - ✅ 新增密碼保護功能（密碼：nchuai）
 - ✅ 新增密碼顯示/隱藏切換
 - ✅ 登入後自動滾動到頂部

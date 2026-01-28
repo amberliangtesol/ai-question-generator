@@ -14,13 +14,16 @@ const hasData = computed(() => questionStore.studentAnswers?.length > 0);
 // 計算每個規則的前後測對應情況
 const ruleAnalysis = computed(() => {
   if (!hasData.value) return [];
-  
+
   const analysis = [];
-  
+
   console.log('=== 開始分析規則 ===');
   console.log('總共選中規則數:', selectedRules.value.length);
-  console.log('選中的規則ID:', selectedRules.value.map(r => r.rank));
-  
+  console.log(
+    '選中的規則ID:',
+    selectedRules.value.map((r) => r.rank),
+  );
+
   // 顯示所有題目的規則分配情況
   console.log('前測題目規則分配概況:');
   const preTestRuleMap = {};
@@ -30,7 +33,7 @@ const ruleAnalysis = computed(() => {
     preTestRuleMap[ruleId].push(idx + 1);
   });
   console.log('前測規則分配:', preTestRuleMap);
-  
+
   console.log('後測題目規則分配概況:');
   const postTestRuleMap = {};
   questionStore.postTestQuestions.forEach((q, idx) => {
@@ -39,86 +42,109 @@ const ruleAnalysis = computed(() => {
     postTestRuleMap[ruleId].push(idx + 1);
   });
   console.log('後測規則分配:', postTestRuleMap);
-  
+
   // 對每個關聯規則進行分析
-  selectedRules.value.forEach(rule => {
+  selectedRules.value.forEach((rule) => {
     console.log(`\n--- 分析規則 ${rule.rank} ---`);
-    
+
     // 找出該規則對應的前測題目
-    const preTestQuestions = questionStore.preTestQuestions.filter(q => 
-      q.ruleIds && q.ruleIds.includes(rule.rank)
+    const preTestQuestions = questionStore.preTestQuestions.filter(
+      (q) => q.ruleIds && q.ruleIds.includes(rule.rank),
     );
-    
+
     // 找出該規則對應的後測題目
-    const postTestQuestions = questionStore.postTestQuestions.filter(q => 
-      q.ruleIds && q.ruleIds.includes(rule.rank)
+    const postTestQuestions = questionStore.postTestQuestions.filter(
+      (q) => q.ruleIds && q.ruleIds.includes(rule.rank),
     );
-    
+
     console.log(`規則 ${rule.rank} 的題目:`, {
       前測題目數: preTestQuestions.length,
-      前測題目ID: preTestQuestions.map(q => q.id),
+      前測題目ID: preTestQuestions.map((q) => q.id),
       後測題目數: postTestQuestions.length,
-      後測題目ID: postTestQuestions.map(q => q.id)
+      後測題目ID: postTestQuestions.map((q) => q.id),
     });
-    
+
     // 如果該規則沒有題目，跳過分析
     if (preTestQuestions.length === 0 && postTestQuestions.length === 0) {
       console.log(`規則 ${rule.rank} 沒有對應的題目，跳過分析`);
       return;
     }
-    
+
     // 分析學生答題情況
-    const studentResults = questionStore.studentAnswers.map(student => {
+    const studentResults = questionStore.studentAnswers.map((student) => {
       // 計算前測正確率
       let preTestCorrect = 0;
       let preTestTotal = preTestQuestions.length;
-      
-      preTestQuestions.forEach(q => {
+
+      preTestQuestions.forEach((q) => {
         const qIdx = questionStore.preTestQuestions.indexOf(q);
-        if (student.preTestAnswers && student.preTestAnswers[qIdx] === q.answer) {
+        if (
+          student.preTestAnswers &&
+          student.preTestAnswers[qIdx] === q.answer
+        ) {
           preTestCorrect++;
         }
       });
-      
+
       // 計算後測正確率
       let postTestCorrect = 0;
       let postTestTotal = postTestQuestions.length;
-      
-      postTestQuestions.forEach(q => {
+
+      postTestQuestions.forEach((q) => {
         const qIdx = questionStore.postTestQuestions.indexOf(q);
-        if (student.postTestAnswers && student.postTestAnswers[qIdx] === q.answer) {
+        if (
+          student.postTestAnswers &&
+          student.postTestAnswers[qIdx] === q.answer
+        ) {
           postTestCorrect++;
         }
       });
-      
+
       console.log(`學生 ${student.name} 在規則 ${rule.rank} 的表現:`, {
         前測: `${preTestCorrect}/${preTestTotal}`,
-        後測: `${postTestCorrect}/${postTestTotal}`
+        後測: `${postTestCorrect}/${postTestTotal}`,
       });
-      
+
       return {
         studentId: student.id,
         studentName: student.name,
-        preTestPass: preTestTotal > 0 && (preTestCorrect / preTestTotal) >= 0.6,
-        postTestPass: postTestTotal > 0 && (postTestCorrect / postTestTotal) >= 0.6,
-        preTestScore: preTestTotal > 0 ? Math.round((preTestCorrect / preTestTotal) * 100) : 0,
-        postTestScore: postTestTotal > 0 ? Math.round((postTestCorrect / postTestTotal) * 100) : 0
+        preTestPass: preTestTotal > 0 && preTestCorrect / preTestTotal >= 0.6,
+        postTestPass:
+          postTestTotal > 0 && postTestCorrect / postTestTotal >= 0.6,
+        preTestScore:
+          preTestTotal > 0
+            ? Math.round((preTestCorrect / preTestTotal) * 100)
+            : 0,
+        postTestScore:
+          postTestTotal > 0
+            ? Math.round((postTestCorrect / postTestTotal) * 100)
+            : 0,
       };
     });
-    
+
     // 統計分析
     const totalStudents = studentResults.length;
-    const bothPass = studentResults.filter(r => r.preTestPass && r.postTestPass).length;
-    const onlyPrePass = studentResults.filter(r => r.preTestPass && !r.postTestPass).length;
-    const onlyPostPass = studentResults.filter(r => !r.preTestPass && r.postTestPass).length;
-    const nonePass = studentResults.filter(r => !r.preTestPass && !r.postTestPass).length;
-    
+    const bothPass = studentResults.filter(
+      (r) => r.preTestPass && r.postTestPass,
+    ).length;
+    const onlyPrePass = studentResults.filter(
+      (r) => r.preTestPass && !r.postTestPass,
+    ).length;
+    const onlyPostPass = studentResults.filter(
+      (r) => !r.preTestPass && r.postTestPass,
+    ).length;
+    const nonePass = studentResults.filter(
+      (r) => !r.preTestPass && !r.postTestPass,
+    ).length;
+
     // 計算信心度：在前測不通過的情況下，後測也不通過的條件機率
     // 這反映了前項困難與後項困難之間的關聯強度
     const studentsFailedPreTest = onlyPostPass + nonePass;
-    const confidence = studentsFailedPreTest > 0 ? 
-      (nonePass / studentsFailedPreTest * 100).toFixed(1) : 0;
-    
+    const confidence =
+      studentsFailedPreTest > 0
+        ? ((nonePass / studentsFailedPreTest) * 100).toFixed(1)
+        : 0;
+
     analysis.push({
       rule,
       preTestQuestions: preTestQuestions.length,
@@ -130,11 +156,11 @@ const ruleAnalysis = computed(() => {
         onlyPrePass,
         onlyPostPass,
         nonePass,
-        confidence
-      }
+        confidence,
+      },
     });
   });
-  
+
   return analysis;
 });
 
@@ -154,7 +180,7 @@ onMounted(() => {
   console.log('studentAnswers:', questionStore.studentAnswers);
   console.log('preTestQuestions:', questionStore.preTestQuestions);
   console.log('postTestQuestions:', questionStore.postTestQuestions);
-  
+
   // 顯示每個題目的規則ID，幫助調試
   if (questionStore.preTestQuestions.length > 0) {
     console.log('前測題目的規則分配:');
@@ -162,7 +188,7 @@ onMounted(() => {
       console.log(`  題目${idx + 1}: 規則${q.ruleIds}`);
     });
   }
-  
+
   if (questionStore.postTestQuestions.length > 0) {
     console.log('後測題目的規則分配:');
     questionStore.postTestQuestions.forEach((q, idx) => {
@@ -177,7 +203,7 @@ onMounted(() => {
 <template>
   <div class="analysis-page">
     <TopBanner subtitle="作答分析" />
-    
+
     <div class="analysis-container">
       <!-- 頁面標題 -->
       <div class="form-header">
@@ -186,7 +212,7 @@ onMounted(() => {
           <p>查看學生前測與後測的表現對比</p>
         </div>
       </div>
-      
+
       <!-- 無數據提示 -->
       <div v-if="!hasData && selectedRules.length === 0" class="empty-state">
         <div class="empty-icon">
@@ -198,19 +224,30 @@ onMounted(() => {
           前往出題設定
         </button>
       </div>
-      
+
       <!-- 關聯規則分析表 -->
-      <div v-else-if="selectedRules.length > 0 || questionStore.preTestQuestions.length > 0" class="analysis-content">
+      <div
+        v-else-if="
+          selectedRules.length > 0 || questionStore.preTestQuestions.length > 0
+        "
+        class="analysis-content"
+      >
         <!-- 選中的關聯規則列表 -->
         <div class="rules-section">
-          <h3>選擇的關聯規則</h3>
+          <h3>出題關聯規則</h3>
           <div class="rules-table">
             <table>
               <thead>
                 <tr>
-                  <th width="60">序號</th>
-                  <th>前項困難<br>(A_含意 / 基本學習內容)</th>
-                  <th>後項困難<br>(B_含意 / 基本學習內容)</th>
+                  <th width="60">規則<br />序號</th>
+                  <th>
+                    <div class="th-title">前項困難</div>
+                    <div class="th-subtitle">(含意 / 基本學習內容)</div>
+                  </th>
+                  <th>
+                    <div class="th-title">後項困難</div>
+                    <div class="th-subtitle">(含意 / 基本學習內容)</div>
+                  </th>
                   <th width="100">信心度</th>
                 </tr>
               </thead>
@@ -238,11 +275,16 @@ onMounted(() => {
                     </div>
                   </td>
                   <td class="center">
-                    <span class="confidence-badge" :class="{
-                      'high': item.statistics.confidence >= 70,
-                      'medium': item.statistics.confidence >= 50 && item.statistics.confidence < 70,
-                      'low': item.statistics.confidence < 50
-                    }">
+                    <span
+                      class="confidence-badge"
+                      :class="{
+                        high: item.statistics.confidence >= 70,
+                        medium:
+                          item.statistics.confidence >= 50 &&
+                          item.statistics.confidence < 70,
+                        low: item.statistics.confidence < 50,
+                      }"
+                    >
                       {{ item.statistics.confidence }}%
                     </span>
                   </td>
@@ -251,46 +293,106 @@ onMounted(() => {
             </table>
           </div>
         </div>
-        
+
         <!-- 學生答題分析 -->
         <div class="students-analysis-section" v-if="hasData">
           <h3>學生答題狀況分析</h3>
-          
-          <div v-for="item in ruleAnalysis" :key="item.rule.rank" class="rule-analysis-card">
+
+          <div
+            v-for="item in ruleAnalysis"
+            :key="item.rule.rank"
+            class="rule-analysis-card"
+          >
             <div class="rule-header">
-              <h4>規則 {{ item.rule.rank }}: {{ item.rule.a_implication }} → {{ item.rule.b_implication }}</h4>
+              <h4>
+                規則 {{ item.rule.rank }}
+              </h4>
+              <div class="rule-details">
+                <div class="rule-item">
+                  <span class="rule-label">前項困難：</span>
+                  <span class="rule-text">{{ item.rule.aImplication || item.rule.antecedents || item.rule.a_implication }}</span>
+                </div>
+                <div class="rule-arrow">→</div>
+                <div class="rule-item">
+                  <span class="rule-label">後項困難：</span>
+                  <span class="rule-text">{{ item.rule.bImplication || item.rule.consequents || item.rule.b_implication }}</span>
+                </div>
+              </div>
             </div>
-            
+
             <div class="analysis-stats">
               <div class="stat-grid">
                 <div class="stat-item">
                   <div class="stat-label">前後測都通過</div>
-                  <div class="stat-value success">{{ item.statistics.bothPass }} 人</div>
-                  <div class="stat-percent">{{ (item.statistics.bothPass / item.statistics.totalStudents * 100).toFixed(0) }}%</div>
+                  <div class="stat-value success">
+                    {{ item.statistics.bothPass }} 人
+                  </div>
+                  <div class="stat-percent">
+                    {{
+                      (
+                        (item.statistics.bothPass /
+                          item.statistics.totalStudents) *
+                        100
+                      ).toFixed(0)
+                    }}%
+                  </div>
                 </div>
                 <div class="stat-item">
                   <div class="stat-label">只通過前測</div>
-                  <div class="stat-value warning">{{ item.statistics.onlyPrePass }} 人</div>
-                  <div class="stat-percent">{{ (item.statistics.onlyPrePass / item.statistics.totalStudents * 100).toFixed(0) }}%</div>
+                  <div class="stat-value warning">
+                    {{ item.statistics.onlyPrePass }} 人
+                  </div>
+                  <div class="stat-percent">
+                    {{
+                      (
+                        (item.statistics.onlyPrePass /
+                          item.statistics.totalStudents) *
+                        100
+                      ).toFixed(0)
+                    }}%
+                  </div>
                 </div>
                 <div class="stat-item">
                   <div class="stat-label">只通過後測</div>
-                  <div class="stat-value info">{{ item.statistics.onlyPostPass }} 人</div>
-                  <div class="stat-percent">{{ (item.statistics.onlyPostPass / item.statistics.totalStudents * 100).toFixed(0) }}%</div>
+                  <div class="stat-value info">
+                    {{ item.statistics.onlyPostPass }} 人
+                  </div>
+                  <div class="stat-percent">
+                    {{
+                      (
+                        (item.statistics.onlyPostPass /
+                          item.statistics.totalStudents) *
+                        100
+                      ).toFixed(0)
+                    }}%
+                  </div>
                 </div>
                 <div class="stat-item">
                   <div class="stat-label">都未通過</div>
-                  <div class="stat-value danger">{{ item.statistics.nonePass }} 人</div>
-                  <div class="stat-percent">{{ (item.statistics.nonePass / item.statistics.totalStudents * 100).toFixed(0) }}%</div>
+                  <div class="stat-value danger">
+                    {{ item.statistics.nonePass }} 人
+                  </div>
+                  <div class="stat-percent">
+                    {{
+                      (
+                        (item.statistics.nonePass /
+                          item.statistics.totalStudents) *
+                        100
+                      ).toFixed(0)
+                    }}%
+                  </div>
                 </div>
               </div>
-              
+
               <div class="analysis-insight">
                 <i class="fas fa-lightbulb"></i>
                 <span v-if="item.statistics.confidence >= 70" class="positive">
                   規則相關性高：前測通過的學生大多也能通過後測，顯示學習概念具有連貫性。
                 </span>
-                <span v-else-if="item.statistics.confidence >= 50" class="neutral">
+                <span
+                  v-else-if="item.statistics.confidence >= 50"
+                  class="neutral"
+                >
                   規則相關性中等：前後測表現有一定關聯，但仍有改善空間。
                 </span>
                 <span v-else class="negative">
@@ -298,7 +400,7 @@ onMounted(() => {
                 </span>
               </div>
             </div>
-            
+
             <!-- 詳細學生列表 -->
             <details class="student-details">
               <summary>查看詳細學生名單</summary>
@@ -313,32 +415,54 @@ onMounted(() => {
                     </tr>
                   </thead>
                   <tbody>
-                    <tr v-for="student in item.studentResults" :key="student.studentId">
+                    <tr
+                      v-for="student in item.studentResults"
+                      :key="student.studentId"
+                    >
                       <td>{{ student.studentName }}</td>
                       <td>
-                        <span class="score-badge" :class="{
-                          'pass': student.preTestPass,
-                          'fail': !student.preTestPass
-                        }">
+                        <span
+                          class="score-badge"
+                          :class="{
+                            pass: student.preTestPass,
+                            fail: !student.preTestPass,
+                          }"
+                        >
                           {{ student.preTestScore }}%
                         </span>
                       </td>
                       <td>
-                        <span class="score-badge" :class="{
-                          'pass': student.postTestPass,
-                          'fail': !student.postTestPass
-                        }">
+                        <span
+                          class="score-badge"
+                          :class="{
+                            pass: student.postTestPass,
+                            fail: !student.postTestPass,
+                          }"
+                        >
                           {{ student.postTestScore }}%
                         </span>
                       </td>
                       <td>
-                        <span v-if="student.preTestPass && student.postTestPass" class="status-badge success">
+                        <span
+                          v-if="student.preTestPass && student.postTestPass"
+                          class="status-badge success"
+                        >
                           都通過
                         </span>
-                        <span v-else-if="student.preTestPass && !student.postTestPass" class="status-badge warning">
+                        <span
+                          v-else-if="
+                            student.preTestPass && !student.postTestPass
+                          "
+                          class="status-badge warning"
+                        >
                           只通過前測
                         </span>
-                        <span v-else-if="!student.preTestPass && student.postTestPass" class="status-badge info">
+                        <span
+                          v-else-if="
+                            !student.preTestPass && student.postTestPass
+                          "
+                          class="status-badge info"
+                        >
                           只通過後測
                         </span>
                         <span v-else class="status-badge danger">
@@ -352,7 +476,7 @@ onMounted(() => {
             </details>
           </div>
         </div>
-        
+
         <!-- 操作按鈕 -->
         <div class="action-buttons">
           <button @click="backToGenerator" class="btn btn-secondary">
@@ -363,7 +487,7 @@ onMounted(() => {
           </button>
         </div>
       </div>
-      
+
       <!-- 預設狀態（當沒有任何數據時） -->
       <div v-else class="empty-state">
         <div class="empty-icon">
@@ -480,6 +604,19 @@ onMounted(() => {
   white-space: nowrap;
 }
 
+.th-title {
+  font-weight: 700;
+  color: #2c3e50;
+  font-size: 0.95rem;
+  margin-bottom: 0.25rem;
+}
+
+.th-subtitle {
+  font-weight: normal;
+  color: #6c757d;
+  font-size: 0.8rem;
+}
+
 .rules-table td.center,
 .rules-table th.center {
   text-align: center;
@@ -552,9 +689,39 @@ onMounted(() => {
 }
 
 .rule-header h4 {
-  margin: 0;
+  margin: 0 0 0.75rem 0;
   color: #2c3e50;
   font-size: 1.1rem;
+}
+
+.rule-details {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.rule-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.rule-label {
+  color: #6c757d;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.rule-text {
+  color: #2c3e50;
+  font-size: 0.95rem;
+}
+
+.rule-arrow {
+  color: #c8a882;
+  font-size: 1.2rem;
+  font-weight: bold;
 }
 
 .analysis-stats {
@@ -770,15 +937,15 @@ onMounted(() => {
   .analysis-container {
     padding: 1rem;
   }
-  
+
   .stat-grid {
     grid-template-columns: repeat(2, 1fr);
   }
-  
+
   .rules-table {
     font-size: 0.85rem;
   }
-  
+
   .action-buttons {
     flex-direction: column;
   }
